@@ -10,8 +10,7 @@ jobs:
 
 android-build:
 runs-on: ubuntu-latest
-  
-  ```
+
 steps:
   - name: Checkout repository
     uses: actions/checkout@v4
@@ -64,12 +63,10 @@ steps:
       track: ${{ github.ref_name == 'main' && 'production' || 'internal' }}
       status: draft
       whatsNewDirectory: distribution/whatsnew
-  ```
 
 ios-build:
 runs-on: macos-latest
-  
-  ```
+
 steps:
   - name: Checkout repository
     uses: actions/checkout@v4
@@ -82,26 +79,20 @@ steps:
   - name: Install dependencies
     run: flutter pub get
 
-
-  # Install iOS certificate
-  - name: Install iOS Certificate
+  - name: Install iOS certificate
     run: |
       echo "${{ secrets.IOS_CERTIFICATE }}" | base64 --decode > certificate.p12
       security create-keychain -p "" build.keychain
       security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
       security list-keychains -d user -s build.keychain
 
-
-  # Install provisioning profile
   - name: Install provisioning profile
     run: |
-      mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-      echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-
+      mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+      echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
 
   - name: Build iOS IPA
     run: flutter build ipa --release
-
 
   - name: Upload to TestFlight
     uses: apple-actions/upload-testflight-build@v1
