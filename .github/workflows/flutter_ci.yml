@@ -7,7 +7,8 @@ on:
       - dev
 
 jobs:
-  build:
+
+  android-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +20,6 @@ jobs:
         with:
           flutter-version: "3.35.4"
 
-      # Cache Flutter dependencies to speed up CI
       - name: Cache pub dependencies
         uses: actions/cache@v4
         with:
@@ -29,13 +29,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Restore Android Keystore from GitHub Secrets
       - name: Restore Keystore
         run: |
           mkdir -p android/app/keystore
           echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > android/app/keystore/upload-keystore.jks
 
-      # Create key.properties file required by Gradle signing
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
@@ -43,24 +41,20 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore/upload-keystore.jks" >> android/key.properties
 
-      # Automatically set versionCode using GitHub run number
       - name: Set versionCode using GitHub run number
         run: |
           VERSION_NAME=$(grep 'version:' pubspec.yaml | cut -d'+' -f1 | awk '{print $2}')
           sed -i "s/version:.*/version: $VERSION_NAME+${{ github.run_number }}/" pubspec.yaml
 
-      # Generate release notes from last commit
       - name: Generate release notes
         run: |
           mkdir -p distribution/whatsnew
           git log -1 --pretty=format:"%h - %s" > distribution/whatsnew/whatsnew-en-US
 
-      # Build Android App Bundle
       - name: Build Android AppBundle
         run: flutter build appbundle
 
-      # Upload build to Google Play Internal Testing
-      - name: Upload to Play Store Internal Testing
+      - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
@@ -69,3 +63,30 @@ jobs:
           track: ${{ github.ref_name == 'main' && 'production' || 'internal' }}
           status: draft
           whatsNewDirectory: distribution/whatsnew
+
+
+  ios-build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.4"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS IPA
+        run: flutter build ipa --release --no-codesign
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
