@@ -128,7 +128,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         .colorScheme
                         .surfaceContainerHighest
                         .withValues(alpha: 0.5),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(13),
                   ),
                 ),
                 const SizedBox(height: 24),
