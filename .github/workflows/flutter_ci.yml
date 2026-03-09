@@ -72,7 +72,7 @@ jobs:
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
 
       - name: Build IPA
-        run: flutter build ipa --release
+        run: flutter build ipa --release --no-codesign
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
