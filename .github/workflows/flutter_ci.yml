@@ -81,3 +81,10 @@ jobs:
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist ios/ExportOptions.plist
