@@ -139,7 +139,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       const AppLogo(size: 70, showText: false),
                       const SizedBox(height: 20),
                       Text(
-                        'Create Account',
+                        'Create Account' ,
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
