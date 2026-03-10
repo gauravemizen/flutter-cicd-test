@@ -77,7 +77,7 @@ jobs:
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
 
       - name: Build IPA
-        run: flutter build ipa --release --no-codesign
+        run: flutter build ipa --release
 
       - name: Show IPA files
         run: ls build/ios/ipa
