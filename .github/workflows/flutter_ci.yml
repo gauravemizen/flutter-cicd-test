@@ -50,6 +50,7 @@ jobs:
 
   ios-build:
     runs-on: macos-latest
+    needs: android-build
 
     steps:
       - name: Checkout repository
