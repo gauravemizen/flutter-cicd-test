@@ -19,6 +19,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.35.4"
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
@@ -34,6 +35,9 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore/upload-keystore.jks" >> android/key.properties
+
+      - name: Clean Flutter
+        run: flutter clean
 
       - name: Build Android AppBundle
         run: flutter build appbundle --build-number ${{ github.run_number }}
@@ -60,9 +64,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.35.4"
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
 
       - name: Install iOS Certificate
         run: |
@@ -76,11 +86,11 @@ jobs:
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
 
-      - name: Build IPA
-        run: |
-          flutter build ipa \
-            --release \
-            --export-options-plist=ios/ExportOptions.plist
+      - name: Clean Flutter
+        run: flutter clean
+
+      - name: Build IPA (no codesign)
+        run: flutter build ipa --release --no-codesign --verbose
 
       - name: Show IPA files
         run: ls build/ios/ipa
@@ -103,7 +113,7 @@ jobs:
           password: ${{ secrets.GMAIL_PASSWORD }}
           subject: "🚀 Flutter CI/CD Deployment Successful"
           to: shivanand@emails.emizentech.com
-          from: GitHub CI
+          from: ${{ secrets.GMAIL_USERNAME }}
           body: |
             Deployment completed successfully.
 
@@ -125,7 +135,7 @@ jobs:
           password: ${{ secrets.GMAIL_PASSWORD }}
           subject: "❌ Flutter CI/CD Deployment Failed"
           to: shivanand@emails.emizentech.com
-          from: GitHub CI
+          from: ${{ secrets.GMAIL_USERNAME }}
           body: |
             Deployment FAILED.
 
