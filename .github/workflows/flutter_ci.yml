@@ -7,8 +7,10 @@ on:
       - dev
 
 jobs:
+
   android-build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,43 +47,45 @@ jobs:
           track: internal
           status: draft
 
-ios-build:
-  runs-on: macos-latest
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+  ios-build:
+    runs-on: macos-latest
+    needs: android-build
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: "3.35.4"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.4"
 
-    - name: Install iOS Certificate
-      run: |
-        echo "${{ secrets.IOS_CERTIFICATE }}" | base64 --decode > certificate.p12
-        security create-keychain -p "" build.keychain
-        security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
-        security list-keychains -d user -s build.keychain
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Install provisioning profile
-      run: |
-        mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-        echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+      - name: Install iOS Certificate
+        run: |
+          echo "${{ secrets.IOS_CERTIFICATE }}" | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+          security list-keychains -d user -s build.keychain
 
-    - name: Build iOS archive
-      run: flutter build ipa --release
+      - name: Install provisioning profile
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
 
-    - name: Check IPA file
-      run: ls build/ios/ipa
+      - name: Build IPA
+        run: flutter build ipa --release
 
-    - name: Upload to TestFlight
-      uses: apple-actions/upload-testflight-build@v1
-      with:
-        app-path: build/ios/ipa/*.ipa
-        issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-        api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-        api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      - name: Show IPA files
+        run: ls build/ios/ipa
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
