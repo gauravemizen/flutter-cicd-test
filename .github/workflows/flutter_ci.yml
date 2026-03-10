@@ -90,7 +90,7 @@ jobs:
         run: flutter clean
 
       - name: Build IPA (no codesign)
-        run: flutter build ipa --release --no-codesign --verbose
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
       - name: Show IPA files
         run: ls build/ios/ipa
