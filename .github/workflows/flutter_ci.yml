@@ -36,7 +36,7 @@ jobs:
           echo "storeFile=keystore/upload-keystore.jks" >> android/key.properties
 
       - name: Build Android AppBundle
-        run: flutter build appbundle
+        run: flutter build appbundle --build-number ${{ github.run_number }}
 
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
