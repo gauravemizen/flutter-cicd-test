@@ -52,9 +52,9 @@ jobs:
           status: draft
 
 
+
   ios-build:
     runs-on: macos-latest
-    needs: android-build
 
     steps:
       - name: Checkout repository
@@ -72,13 +72,16 @@ jobs:
       - name: Install CocoaPods
         run: |
           cd ios
-          pod install
+          pod install --repo-update
 
       - name: Install iOS Certificate
         run: |
           echo "${{ secrets.IOS_CERTIFICATE }}" | base64 --decode > certificate.p12
           security create-keychain -p "" build.keychain
-          security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "${{ secrets.IOS_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/codesign
           security list-keychains -d user -s build.keychain
 
       - name: Install provisioning profile
@@ -89,8 +92,11 @@ jobs:
       - name: Clean Flutter
         run: flutter clean
 
-      - name: Build IPA (no codesign)
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+      - name: Build IPA
+        run: |
+          flutter build ipa \
+            --release \
+            --export-options-plist=ios/ExportOptions.plist
 
       - name: Show IPA files
         run: ls build/ios/ipa
