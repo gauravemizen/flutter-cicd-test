@@ -88,12 +88,22 @@ jobs:
         run: |
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
-          
-          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i profile.mobileprovision))
+
+          security cms -D -i profile.mobileprovision > profile.plist
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" profile.plist)
+
           cp profile.mobileprovision "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
 
       - name: Clean Flutter
         run: flutter clean
+
+
+
+      - name: Configure Xcode signing
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :objects:/*:buildSettings:CODE_SIGN_STYLE Manual" ios/Runner.xcodeproj/project.pbxproj || true
+          /usr/libexec/PlistBuddy -c "Set :objects:/*:buildSettings:DEVELOPMENT_TEAM 55DJQPG6M9" ios/Runner.xcodeproj/project.pbxproj || true
+          /usr/libexec/PlistBuddy -c "Set :objects:/*:buildSettings:PROVISIONING_PROFILE_SPECIFIER flutter-ci-ios" ios/Runner.xcodeproj/project.pbxproj || true
 
       - name: Build IPA
         run: |
