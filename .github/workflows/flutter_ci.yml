@@ -100,11 +100,7 @@ jobs:
           flutter build ipa \
             --release \
             --export-options-plist=ios/ExportOptions.plist \
-            --build-name=1.0.${{ github.run_number }} \
-            --verbose \
-            -- \
-            DEVELOPMENT_TEAM=55DJQPG6M9 \
-            PROVISIONING_PROFILE_SPECIFIER="flutter-ci-ios"
+            --build-name=1.0.${{ github.run_number }}
 
       - name: Show IPA files
         run: ls build/ios/ipa
