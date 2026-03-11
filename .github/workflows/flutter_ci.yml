@@ -87,7 +87,10 @@ jobs:
       - name: Install provisioning profile
         run: |
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
+          
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i profile.mobileprovision))
+          cp profile.mobileprovision "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
 
       - name: Clean Flutter
         run: flutter clean
